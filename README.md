@@ -24,14 +24,23 @@ In this project, we consider a multi-objective variant of the problem, where we 
 
 ## Running the Project
 
-1.  **Activate the virtual environment:**
-    *   On Windows (Command Prompt): `.\.venv\Scripts\activate.bat`
-    *   On Windows (PowerShell): `.\.venv\Scripts\Activate.ps1`
-    *   On macOS/Linux: `source ./.venv/bin/activate`
+1.  **Set up the environment:**
+    *   It is recommended to use a Python virtual environment. The `.venv` directory in this project was created for this purpose.
+    *   Activate the virtual environment:
+        *   On Windows (Command Prompt): `.\.venv\Scripts\activate.bat`
+        *   On Windows (PowerShell): `.\.venv\Scripts\Activate.ps1`
+        *   On macOS/Linux: `source ./.venv/bin/activate`
 
-2.  **Open the Jupyter Notebook:**
-    ```sh
-    jupyter notebook TD_TC1.ipynb
-    ```
+2.  **Install dependencies:**
+    *   Install the required libraries using the `requirements.txt` file:
+        ```sh
+        pip install -r requirements.txt
+        ```
 
-3.  **Run the cells in the notebook.**
+3.  **Run the Jupyter Notebook:**
+    *   Start the Jupyter Notebook server:
+        ```sh
+        jupyter notebook
+        ```
+    *   In the browser window that opens, navigate to and open the `TD_TC1.ipynb` file.
+    *   Run the cells in the notebook sequentially to see the results.
