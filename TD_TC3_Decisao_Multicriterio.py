@@ -26,7 +26,9 @@ print("CARREGAMENTO DOS DADOS")
 print("=" * 60)
 
 # Carregar fronteira unificada (união das fronteiras PE e PW da Entrega 2)
-df_fronteira = pd.read_csv('data/fronteira_unificada.csv')
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent
+df_fronteira = pd.read_csv(BASE_DIR / 'outputs' / 'fronteira_unificada.csv')
 
 print(f"\nTotal de soluções carregadas: {len(df_fronteira)}")
 print(f"  - Epsilon-restrito: {len(df_fronteira[df_fronteira['metodo'] == 'epsilon-restrito'])}")
@@ -176,20 +178,24 @@ def calcular_pesos_ahp(matriz_comparacao):
 
 # Matriz de comparação par-a-par dos critérios
 # Escala Saaty: 1 = igual importância, 3 = moderada, 5 = forte, 7 = muito forte, 9 = extrema
-# Interpretação: linha i vs coluna j
-#   - Tempo vs Distância: 3 (tempo é moderadamente mais importante)
-#   - Tempo vs Alta_Velocidade: 5 (tempo é fortemente mais importante)
-#   - Tempo vs Balanceamento: 3 (tempo é moderadamente mais importante)
-#   - Distância vs Alta_Velocidade: 3 (distância é moderadamente mais importante)
-#   - Distância vs Balanceamento: 7 (distância é muito mais importante)
-#   - Alta_Velocidade vs Balanceamento: 9 (alta velocidade é extremamente mais importante)
+#
+# Hierarquia: Tempo > Distância > Alta Velocidade > Balanceamento
+# Razão de ~2x entre níveis adjacentes para garantir consistência (CR < 0.1)
+#
+# Interpretação:
+#   - Tempo vs Distância: 2 (tempo é levemente mais importante)
+#   - Tempo vs Alta_Velocidade: 4 (tempo é moderadamente mais importante)
+#   - Tempo vs Balanceamento: 8 (tempo é muito mais importante)
+#   - Distância vs Alta_Velocidade: 2 (distância é levemente mais importante)
+#   - Distância vs Balanceamento: 4 (distância é moderadamente mais importante)
+#   - Alta_Velocidade vs Balanceamento: 2 (alta velocidade é levemente mais importante)
 
 matriz_comparacao_ahp = np.array([
     #    Tempo  Dist   AltaVel  Balanc
-    [1,     3,     5,       3],      # Tempo
-    [1/3,   1,     3,       7],      # Distância
-    [1/5,   1/3,   1,       9],      # Alta Velocidade
-    [1/3,   1/7,   1/9,     1],      # Balanceamento
+    [1,     2,     4,       8],      # Tempo
+    [1/2,   1,     2,       4],      # Distância
+    [1/4,   1/2,   1,       2],      # Alta Velocidade
+    [1/8,   1/4,   1/2,     1],      # Balanceamento
 ])
 
 pesos_ahp, CR, lambda_max = calcular_pesos_ahp(matriz_comparacao_ahp)
@@ -747,5 +753,5 @@ print("  - figura_fronteira_3d.png")
 print("  - figura_solucao_final.png")
 
 # Salvar resultados em CSV
-df_analise.to_csv('data/resultados_decisao.csv', index=False)
-print("\nResultados salvos em: data/resultados_decisao.csv")
+df_analise.to_csv(output_dir / 'resultados_decisao.csv', index=False)
+print("\nResultados salvos em: outputs/resultados_decisao.csv")

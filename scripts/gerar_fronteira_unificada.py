@@ -1,15 +1,31 @@
 """
 Script para unificar as fronteiras PE e PW e gerar atributos adicionais.
+
+Este script combina os resultados da Entrega 2 (fronteiras de Pareto obtidas
+pelos métodos de escalarização) e gera atributos adicionais simulados para
+a análise multicritério da Entrega 3.
 """
 
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
+# Configuração de seed para reprodutibilidade
 np.random.seed(42)
 
-# Carregar dados das fronteiras
-df_pe = pd.read_csv('data/fronteira_pe.csv')
-df_pw = pd.read_csv('data/fronteira_pw.csv')
+# Diretórios
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+OUTPUT_DIR = BASE_DIR / "outputs"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+print("=" * 60)
+print("GERAÇÃO DA FRONTEIRA UNIFICADA")
+print("=" * 60)
+
+# Carregar dados das fronteiras da Entrega 2
+df_pe = pd.read_csv(DATA_DIR / 'fronteira_pe.csv')
+df_pw = pd.read_csv(DATA_DIR / 'fronteira_pw.csv')
 
 # Adicionar coluna de método
 df_pe['metodo'] = 'epsilon-restrito'
@@ -27,30 +43,38 @@ df_pw = df_pw[colunas]
 # Combinar dataframes
 df_unificado = pd.concat([df_pe, df_pw], ignore_index=True)
 
-print(f"Total de soluções: {len(df_unificado)}")
+print(f"\nTotal de soluções: {len(df_unificado)}")
 print(f"  - Epsilon-restrito: {len(df_pe)}")
 print(f"  - Soma ponderada: {len(df_pw)}")
 
-# Gerar atributos adicionais de forma correlacionada mas conflitante
-# Alta_Velocidade: correlação positiva com velocidade média (dist/tempo)
-# - Rotas mais rápidas tendem a ter mais trechos de alta velocidade
+# =============================================================================
+# GERAÇÃO DE ATRIBUTOS ADICIONAIS (SIMULADOS)
+# =============================================================================
+# Como as rotas completas não foram salvas na Entrega 2, os atributos
+# adicionais são gerados de forma simulada, mantendo correlações realistas.
+
+print("\n" + "-" * 60)
+print("Gerando atributos adicionais simulados...")
+print("-" * 60)
+
+# Alta_Velocidade: número de trechos com velocidade > 80 km/h
+# Correlação positiva com velocidade média (dist/tempo)
+# Lógica: rotas mais rápidas tendem a ter mais trechos de alta velocidade
 velocidade_media = df_unificado['distancia'] / df_unificado['tempo']
 vel_norm = (velocidade_media - velocidade_media.min()) / (velocidade_media.max() - velocidade_media.min())
 
-# Alta_Velocidade: entre 20 e 120 trechos, correlacionado com velocidade média
-# Maior velocidade média -> mais trechos de alta velocidade
+# Entre 20 e 120 trechos, correlacionado com velocidade média
 base_alta_vel = 20 + vel_norm * 80
 ruido = np.random.normal(0, 10, len(df_unificado))
 df_unificado['alta_velocidade'] = np.clip(base_alta_vel + ruido, 10, 130).astype(int)
 
-# Balanceamento: desvio padrão das distâncias entre trechos
-# Conflito: rotas mais curtas tendem a ter menos balanceamento (mais variação)
-# Rotas com menor distância total -> maior desbalanceamento
+# Balanceamento: desvio padrão das distâncias entre trechos consecutivos
+# Correlação negativa com distância total
+# Lógica: rotas mais curtas podem ter maior variação (menos balanceadas)
 dist_norm = (df_unificado['distancia'] - df_unificado['distancia'].min()) / \
             (df_unificado['distancia'].max() - df_unificado['distancia'].min())
 
-# Balanceamento: entre 5 e 25, inversamente correlacionado com distância
-# Menor distância -> maior desbalanceamento (maior desvio padrão)
+# Entre 5 e 25, inversamente correlacionado com distância
 base_balanceamento = 25 - dist_norm * 15
 ruido_bal = np.random.normal(0, 2, len(df_unificado))
 df_unificado['balanceamento'] = np.clip(base_balanceamento + ruido_bal, 5, 30)
@@ -65,19 +89,40 @@ df_unificado = df_unificado[['id', 'metodo', 'repeticao', 'tempo', 'distancia',
                              'alta_velocidade', 'balanceamento', 'parametro']]
 
 # Salvar arquivo unificado
-df_unificado.to_csv('data/fronteira_unificada.csv', index=False)
+arquivo_saida = OUTPUT_DIR / 'fronteira_unificada.csv'
+df_unificado.to_csv(arquivo_saida, index=False)
 
-print("\nArquivo salvo: data/fronteira_unificada.csv")
-print("\nEstatísticas dos atributos:")
-print(df_unificado[['tempo', 'distancia', 'alta_velocidade', 'balanceamento']].describe())
+print(f"\nArquivo salvo: {arquivo_saida}")
 
-print("\nVerificação de conflitos (correlações):")
-print("  Tempo vs Distância:", df_unificado['tempo'].corr(df_unificado['distancia']).round(3))
-print("  Tempo vs Alta_Velocidade:", df_unificado['tempo'].corr(df_unificado['alta_velocidade']).round(3))
-print("  Tempo vs Balanceamento:", df_unificado['tempo'].corr(df_unificado['balanceamento']).round(3))
-print("  Distância vs Alta_Velocidade:", df_unificado['distancia'].corr(df_unificado['alta_velocidade']).round(3))
-print("  Distância vs Balanceamento:", df_unificado['distancia'].corr(df_unificado['balanceamento']).round(3))
-print("  Alta_Velocidade vs Balanceamento:", df_unificado['alta_velocidade'].corr(df_unificado['balanceamento']).round(3))
+# =============================================================================
+# ESTATÍSTICAS E VERIFICAÇÕES
+# =============================================================================
 
-print("\nPrimeiras linhas do arquivo:")
-print(df_unificado.head(10))
+print("\n" + "=" * 60)
+print("ESTATÍSTICAS DOS ATRIBUTOS")
+print("=" * 60)
+print(df_unificado[['tempo', 'distancia', 'alta_velocidade', 'balanceamento']].describe().round(2))
+
+print("\n" + "=" * 60)
+print("VERIFICAÇÃO DE CONFLITOS (CORRELAÇÕES)")
+print("=" * 60)
+print("\nPara satisfazer o requisito de atributos conflitantes,")
+print("as correlações devem ser negativas ou próximas de zero:\n")
+
+correlacoes = [
+    ('Tempo', 'Distância', df_unificado['tempo'].corr(df_unificado['distancia'])),
+    ('Tempo', 'Alta_Velocidade', df_unificado['tempo'].corr(df_unificado['alta_velocidade'])),
+    ('Tempo', 'Balanceamento', df_unificado['tempo'].corr(df_unificado['balanceamento'])),
+    ('Distância', 'Alta_Velocidade', df_unificado['distancia'].corr(df_unificado['alta_velocidade'])),
+    ('Distância', 'Balanceamento', df_unificado['distancia'].corr(df_unificado['balanceamento'])),
+    ('Alta_Velocidade', 'Balanceamento', df_unificado['alta_velocidade'].corr(df_unificado['balanceamento'])),
+]
+
+for a, b, corr in correlacoes:
+    status = "✓ conflitante" if corr < 0 else "⚠ correlacionado"
+    print(f"  {a:15} vs {b:15}: {corr:+.3f} {status}")
+
+print("\n" + "=" * 60)
+print("PRIMEIRAS 10 LINHAS")
+print("=" * 60)
+print(df_unificado.head(10).to_string(index=False))
