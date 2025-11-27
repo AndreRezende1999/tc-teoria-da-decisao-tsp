@@ -179,23 +179,23 @@ def calcular_pesos_ahp(matriz_comparacao):
 # Matriz de comparação par-a-par dos critérios
 # Escala Saaty: 1 = igual importância, 3 = moderada, 5 = forte, 7 = muito forte, 9 = extrema
 #
-# Hierarquia: Tempo > Distância > Alta Velocidade > Balanceamento
-# Razão de ~2x entre níveis adjacentes para garantir consistência (CR < 0.1)
+# Hierarquia definida por pesos: Tempo=7, Distância=5, Alta Velocidade=3, Balanceamento=1
+# As comparações são razões entre os pesos, garantindo consistência perfeita (CR ≈ 0)
 #
 # Interpretação:
-#   - Tempo vs Distância: 2 (tempo é levemente mais importante)
-#   - Tempo vs Alta_Velocidade: 4 (tempo é moderadamente mais importante)
-#   - Tempo vs Balanceamento: 8 (tempo é muito mais importante)
-#   - Distância vs Alta_Velocidade: 2 (distância é levemente mais importante)
-#   - Distância vs Balanceamento: 4 (distância é moderadamente mais importante)
-#   - Alta_Velocidade vs Balanceamento: 2 (alta velocidade é levemente mais importante)
+#   - Tempo vs Distância: 7/5 = 1.4 (tempo é levemente mais importante)
+#   - Tempo vs Alta_Velocidade: 7/3 ≈ 2.3 (tempo é mais importante)
+#   - Tempo vs Balanceamento: 7/1 = 7 (tempo é muito mais importante)
+#   - Distância vs Alta_Velocidade: 5/3 ≈ 1.7 (distância é levemente mais importante)
+#   - Distância vs Balanceamento: 5/1 = 5 (distância é fortemente mais importante)
+#   - Alta_Velocidade vs Balanceamento: 3/1 = 3 (alta velocidade é moderadamente mais importante)
 
 matriz_comparacao_ahp = np.array([
-    #    Tempo  Dist   AltaVel  Balanc
-    [1,     2,     4,       8],      # Tempo
-    [1/2,   1,     2,       4],      # Distância
-    [1/4,   1/2,   1,       2],      # Alta Velocidade
-    [1/8,   1/4,   1/2,     1],      # Balanceamento
+    #    Tempo    Dist     AltaVel  Balanc
+    [1,      7/5,     7/3,     7],      # Tempo
+    [5/7,    1,       5/3,     5],      # Distância
+    [3/7,    3/5,     1,       3],      # Alta Velocidade
+    [1/7,    1/5,     1/3,     1],      # Balanceamento
 ])
 
 pesos_ahp, CR, lambda_max = calcular_pesos_ahp(matriz_comparacao_ahp)
