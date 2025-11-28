@@ -57,17 +57,29 @@ print("\n" + "-" * 60)
 print("Gerando atributos adicionais simulados...")
 print("-" * 60)
 
-# Velocidade: número de trechos com velocidade média ABAIXO de velocidade crítica (ex: 50 km/h)
-# Correlação NEGATIVA com velocidade média (dist/tempo)
-# Lógica: rotas mais rápidas tendem a ter MENOS trechos lentos
+# Velocidade: número de trechos com velocidade ACIMA da velocidade máxima permitida
+# TSP com 250 cidades = ~250 trechos por rota
+#
+# Objetivo: MINIMIZAR trechos acima do limite (equivale a MAXIMIZAR trechos abaixo)
+# Correlação POSITIVA com velocidade média (dist/tempo)
+# Lógica: rotas mais rápidas tendem a ter MAIS trechos acima do limite
+#
+# Geração similar ao balanceamento:
+# 1. Calcula velocidade média de cada rota
+# 2. Normaliza para [0, 1]
+# 3. Usa como base para estimar quantidade de trechos acima do limite
+# 4. Adiciona ruído para simular variação entre rotas
+
 velocidade_media = df_unificado['distancia'] / df_unificado['tempo']
 vel_norm = (velocidade_media - velocidade_media.min()) / (velocidade_media.max() - velocidade_media.min())
 
-# Entre 10 e 100 trechos, INVERSAMENTE correlacionado com velocidade média
-# Rotas mais rápidas = menos trechos abaixo da velocidade crítica
-base_trechos_lentos = 100 - vel_norm * 80
-ruido = np.random.normal(0, 10, len(df_unificado))
-df_unificado['velocidade'] = np.clip(base_trechos_lentos + ruido, 10, 110).astype(int)
+# Com 250 trechos por rota:
+# Rotas mais rápidas: ~40-70% dos trechos acima do limite (100-175 trechos)
+# Rotas mais lentas: ~10-30% dos trechos acima do limite (25-75 trechos)
+
+base_trechos_acima = 25 + vel_norm * 120  # Base: 25 a 145
+ruido = np.random.normal(0, 15, len(df_unificado))  # Variação de ±15 trechos
+df_unificado['velocidade'] = np.clip(base_trechos_acima + ruido, 15, 180).astype(int)
 
 # Balanceamento: desvio padrão das distâncias entre trechos consecutivos
 # Correlação negativa com distância total

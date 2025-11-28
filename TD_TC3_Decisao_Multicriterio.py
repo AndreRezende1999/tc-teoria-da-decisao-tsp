@@ -37,7 +37,7 @@ print(f"  - Soma ponderada: {len(df_fronteira[df_fronteira['metodo'] == 'soma-po
 print("\nAtributos disponíveis:")
 print("  - Tempo (horas): objetivo original - MINIMIZAR")
 print("  - Distância (km): objetivo original - MINIMIZAR")
-print("  - Velocidade (trechos abaixo de vel. crítica): MINIMIZAR (eficiência)")
+print("  - Velocidade (trechos acima de vel. crítica): MINIMIZAR (segurança)")
 print("  - Balanceamento (desvio padrão das distâncias): MINIMIZAR (regularidade)")
 
 print("\nEstatísticas dos atributos:")
@@ -405,7 +405,7 @@ print(f"Método de origem: {solucao_final['metodo']}")
 print(f"\nAtributos:")
 print(f"  Tempo Total: {solucao_final['tempo']:.2f} horas")
 print(f"  Distância Total: {solucao_final['distancia']:.2f} km")
-print(f"  Trechos abaixo vel. crítica: {solucao_final['velocidade']:.0f}")
+print(f"  Trechos acima vel. crítica: {solucao_final['velocidade']:.0f}")
 print(f"  Balanceamento (desvio padrão): {solucao_final['balanceamento']:.2f}")
 print(f"\nScores:")
 print(f"  Score AHP: {solucao_final['Score_AHP']:.4f} (Rank: {solucao_final['Rank_AHP']:.0f})")
@@ -564,7 +564,7 @@ ax2.scatter(
     label='Solução Escolhida',
     zorder=5,
 )
-ax2.set_xlabel('Trechos abaixo vel. crítica', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Trechos acima vel. crítica', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Balanceamento (Desvio Padrão)', fontsize=12, fontweight='bold')
 ax2.set_title('Fronteira de Pareto - Velocidade vs Balanceamento', fontsize=14, fontweight='bold')
 ax2.legend(fontsize=10)
