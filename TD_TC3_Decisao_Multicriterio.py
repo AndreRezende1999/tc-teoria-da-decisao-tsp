@@ -470,40 +470,7 @@ plt.tight_layout()
 plt.savefig(output_dir / "fronteira_metodos.png", dpi=150)
 plt.close()
 
-# Fronteira com ranking por cores (estilo TD_ENTREGA2)
-plt.figure(figsize=(12, 8))
-scatter = plt.scatter(
-    df_analise['tempo'],
-    df_analise['distancia'],
-    c=df_analise['Rank_TOPSIS'],
-    cmap='RdYlGn',
-    alpha=0.8,
-    s=100,
-    edgecolors='black',
-    linewidth=0.5,
-)
-plt.scatter(
-    solucao_final['tempo'],
-    solucao_final['distancia'],
-    color='blue',
-    s=400,
-    marker='*',
-    edgecolors='darkblue',
-    linewidth=2,
-    label='Solução Escolhida',
-    zorder=10,
-)
-plt.colorbar(scatter, label='Rank TOPSIS (menor = melhor)')
-plt.xlabel("Tempo (h)", fontsize=12)
-plt.ylabel("Distância (km)", fontsize=12)
-plt.title("Fronteira de Pareto - Ranking TOPSIS", fontsize=14, fontweight='bold')
-plt.legend(fontsize=10)
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig(output_dir / "fronteira_ranking_topsis.png", dpi=150)
-plt.close()
-
-print("Figuras estilo TD_ENTREGA2 salvas em outputs/")
+print("Figura fronteira_metodos salva em outputs/")
 
 # =============================================================================
 # Figuras originais do script
@@ -590,6 +557,37 @@ scatter = ax.scatter(
     linewidth=0.3,
 )
 
+# Melhor solução AHP (menor score)
+melhor_ahp = df_analise.loc[df_analise['Score_AHP'].idxmin()]
+ax.scatter(
+    melhor_ahp['distancia'],
+    melhor_ahp['tempo'],
+    melhor_ahp['velocidade'],
+    color='blue',
+    s=300,
+    marker='^',
+    edgecolors='darkblue',
+    linewidth=2,
+    label=f'Melhor AHP ({melhor_ahp["id"]})',
+    zorder=10,
+)
+
+# Melhor solução TOPSIS (maior score)
+melhor_topsis = df_analise.loc[df_analise['Score_TOPSIS'].idxmax()]
+ax.scatter(
+    melhor_topsis['distancia'],
+    melhor_topsis['tempo'],
+    melhor_topsis['velocidade'],
+    color='green',
+    s=300,
+    marker='s',
+    edgecolors='darkgreen',
+    linewidth=2,
+    label=f'Melhor TOPSIS ({melhor_topsis["id"]})',
+    zorder=10,
+)
+
+# Solução final escolhida
 ax.scatter(
     solucao_final['distancia'],
     solucao_final['tempo'],
@@ -599,7 +597,8 @@ ax.scatter(
     marker='*',
     edgecolors='darkred',
     linewidth=2,
-    label='Solução Escolhida',
+    label=f'Solução Final ({solucao_final["id"]})',
+    zorder=11,
 )
 
 ax.set_xlabel('Distância (km)', fontsize=11, fontweight='bold')
@@ -746,8 +745,7 @@ for attr, valor, media in zip(atributos_print, valores, valores_media):
 print("=" * 80)
 
 print("\nFiguras salvas em outputs/:")
-print("  - fronteira_metodos.png (estilo TD_ENTREGA2)")
-print("  - fronteira_ranking_topsis.png (estilo TD_ENTREGA2)")
+print("  - fronteira_metodos.png")
 print("  - figura_fronteira_solucao.png")
 print("  - figura_fronteira_3d.png")
 print("  - figura_solucao_final.png")
