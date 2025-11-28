@@ -57,16 +57,17 @@ print("\n" + "-" * 60)
 print("Gerando atributos adicionais simulados...")
 print("-" * 60)
 
-# Alta_Velocidade: número de trechos com velocidade > 80 km/h
-# Correlação positiva com velocidade média (dist/tempo)
-# Lógica: rotas mais rápidas tendem a ter mais trechos de alta velocidade
+# Velocidade: número de trechos com velocidade média ABAIXO de velocidade crítica (ex: 50 km/h)
+# Correlação NEGATIVA com velocidade média (dist/tempo)
+# Lógica: rotas mais rápidas tendem a ter MENOS trechos lentos
 velocidade_media = df_unificado['distancia'] / df_unificado['tempo']
 vel_norm = (velocidade_media - velocidade_media.min()) / (velocidade_media.max() - velocidade_media.min())
 
-# Entre 20 e 120 trechos, correlacionado com velocidade média
-base_alta_vel = 20 + vel_norm * 80
+# Entre 10 e 100 trechos, INVERSAMENTE correlacionado com velocidade média
+# Rotas mais rápidas = menos trechos abaixo da velocidade crítica
+base_trechos_lentos = 100 - vel_norm * 80
 ruido = np.random.normal(0, 10, len(df_unificado))
-df_unificado['alta_velocidade'] = np.clip(base_alta_vel + ruido, 10, 130).astype(int)
+df_unificado['velocidade'] = np.clip(base_trechos_lentos + ruido, 10, 110).astype(int)
 
 # Balanceamento: desvio padrão das distâncias entre trechos consecutivos
 # Correlação negativa com distância total
@@ -86,7 +87,7 @@ df_unificado['distancia'] = df_unificado['distancia'].round(2)
 
 # Reorganizar colunas
 df_unificado = df_unificado[['id', 'metodo', 'repeticao', 'tempo', 'distancia',
-                             'alta_velocidade', 'balanceamento', 'parametro']]
+                             'velocidade', 'balanceamento', 'parametro']]
 
 # Salvar arquivo unificado
 arquivo_saida = OUTPUT_DIR / 'fronteira_unificada.csv'
@@ -101,7 +102,7 @@ print(f"\nArquivo salvo: {arquivo_saida}")
 print("\n" + "=" * 60)
 print("ESTATÍSTICAS DOS ATRIBUTOS")
 print("=" * 60)
-print(df_unificado[['tempo', 'distancia', 'alta_velocidade', 'balanceamento']].describe().round(2))
+print(df_unificado[['tempo', 'distancia', 'velocidade', 'balanceamento']].describe().round(2))
 
 print("\n" + "=" * 60)
 print("VERIFICAÇÃO DE CONFLITOS (CORRELAÇÕES)")
@@ -111,11 +112,11 @@ print("as correlações devem ser negativas ou próximas de zero:\n")
 
 correlacoes = [
     ('Tempo', 'Distância', df_unificado['tempo'].corr(df_unificado['distancia'])),
-    ('Tempo', 'Alta_Velocidade', df_unificado['tempo'].corr(df_unificado['alta_velocidade'])),
+    ('Tempo', 'Velocidade', df_unificado['tempo'].corr(df_unificado['velocidade'])),
     ('Tempo', 'Balanceamento', df_unificado['tempo'].corr(df_unificado['balanceamento'])),
-    ('Distância', 'Alta_Velocidade', df_unificado['distancia'].corr(df_unificado['alta_velocidade'])),
+    ('Distância', 'Velocidade', df_unificado['distancia'].corr(df_unificado['velocidade'])),
     ('Distância', 'Balanceamento', df_unificado['distancia'].corr(df_unificado['balanceamento'])),
-    ('Alta_Velocidade', 'Balanceamento', df_unificado['alta_velocidade'].corr(df_unificado['balanceamento'])),
+    ('Velocidade', 'Balanceamento', df_unificado['velocidade'].corr(df_unificado['balanceamento'])),
 ]
 
 for a, b, corr in correlacoes:

@@ -67,7 +67,7 @@ Utilizar o *Technique for Order of Preference by Similarity to Ideal Solution* (
 O notebook `TD_TC3_Decisao_Multicriterio.ipynb` deve seguir esta estrutura lógica:
 
 1.  **Setup**: Importação de bibliotecas e carregamento dos dados (`distancia.csv`, `tempo.csv`).
-2.  **Funções de Atributos**: Implementação de `calcular_alta_velocidade` e `calcular_balanceamento`.
+2.  **Funções de Atributos**: Implementação de `calcular_velocidade` e `calcular_balanceamento`.
 3.  **Loop de Otimização**: Geração de soluções variando pesos e coleta de dados.
 4.  **Processamento da Fronteira**: Filtragem de não-dominadas.
 5.  **Implementação AHP**: Definição da matriz de preferências e cálculo de pesos.

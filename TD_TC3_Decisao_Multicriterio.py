@@ -37,11 +37,11 @@ print(f"  - Soma ponderada: {len(df_fronteira[df_fronteira['metodo'] == 'soma-po
 print("\nAtributos disponíveis:")
 print("  - Tempo (horas): objetivo original - MINIMIZAR")
 print("  - Distância (km): objetivo original - MINIMIZAR")
-print("  - Alta Velocidade (trechos >80 km/h): MINIMIZAR (segurança)")
-print("  - Balanceamento (desvio padrão): MINIMIZAR (regularidade)")
+print("  - Velocidade (trechos abaixo de vel. crítica): MINIMIZAR (eficiência)")
+print("  - Balanceamento (desvio padrão das distâncias): MINIMIZAR (regularidade)")
 
 print("\nEstatísticas dos atributos:")
-print(df_fronteira[['tempo', 'distancia', 'alta_velocidade', 'balanceamento']].describe())
+print(df_fronteira[['tempo', 'distancia', 'velocidade', 'balanceamento']].describe())
 
 # %%
 # =============================================================================
@@ -52,7 +52,7 @@ print("\n" + "=" * 60)
 print("FILTRAGEM DE SOLUÇÕES NÃO-DOMINADAS")
 print("=" * 60)
 
-criterios_minimizacao = ['tempo', 'distancia', 'alta_velocidade', 'balanceamento']
+criterios_minimizacao = ['tempo', 'distancia', 'velocidade', 'balanceamento']
 
 
 def eh_dominada(idx, df, criterios):
@@ -132,7 +132,7 @@ df_analise = selecionar_bem_distribuidas(df_nao_dominadas, criterios_minimizacao
 print(f"Soluções selecionadas para análise: {len(df_analise)}")
 
 print("\nSoluções selecionadas:")
-print(df_analise[['id', 'metodo', 'tempo', 'distancia', 'alta_velocidade', 'balanceamento']])
+print(df_analise[['id', 'metodo', 'tempo', 'distancia', 'velocidade', 'balanceamento']])
 
 # %%
 # =============================================================================
@@ -179,29 +179,29 @@ def calcular_pesos_ahp(matriz_comparacao):
 # Matriz de comparação par-a-par dos critérios
 # Escala Saaty: 1 = igual importância, 3 = moderada, 5 = forte, 7 = muito forte, 9 = extrema
 #
-# Hierarquia definida por pesos: Tempo=7, Distância=5, Alta Velocidade=3, Balanceamento=1
+# Hierarquia definida por pesos: Tempo=7, Distância=5, Velocidade=3, Balanceamento=1
 # As comparações são razões entre os pesos, garantindo consistência perfeita (CR ≈ 0)
 #
 # Interpretação:
 #   - Tempo vs Distância: 7/5 = 1.4 (tempo é levemente mais importante)
-#   - Tempo vs Alta_Velocidade: 7/3 ≈ 2.3 (tempo é mais importante)
+#   - Tempo vs Velocidade: 7/3 ≈ 2.3 (tempo é mais importante)
 #   - Tempo vs Balanceamento: 7/1 = 7 (tempo é muito mais importante)
-#   - Distância vs Alta_Velocidade: 5/3 ≈ 1.7 (distância é levemente mais importante)
+#   - Distância vs Velocidade: 5/3 ≈ 1.7 (distância é levemente mais importante)
 #   - Distância vs Balanceamento: 5/1 = 5 (distância é fortemente mais importante)
-#   - Alta_Velocidade vs Balanceamento: 3/1 = 3 (alta velocidade é moderadamente mais importante)
+#   - Velocidade vs Balanceamento: 3/1 = 3 (alta velocidade é moderadamente mais importante)
 
 matriz_comparacao_ahp = np.array([
     #    Tempo    Dist     AltaVel  Balanc
     [1,      7/5,     7/3,     7],      # Tempo
     [5/7,    1,       5/3,     5],      # Distância
-    [3/7,    3/5,     1,       3],      # Alta Velocidade
+    [3/7,    3/5,     1,       3],      # Velocidade
     [1/7,    1/5,     1/3,     1],      # Balanceamento
 ])
 
 pesos_ahp, CR, lambda_max = calcular_pesos_ahp(matriz_comparacao_ahp)
 
 print("\nMatriz de Comparação Par-a-Par (Escala Saaty):")
-criterios_nomes = ['Tempo', 'Distância', 'Alta Veloc.', 'Balanc.']
+criterios_nomes = ['Tempo', 'Distância', 'Velocidade', 'Balanc.']
 df_matriz = pd.DataFrame(matriz_comparacao_ahp, index=criterios_nomes, columns=criterios_nomes)
 print(df_matriz.round(3))
 
@@ -335,10 +335,10 @@ if solucoes_comuns:
     print(f"Índices: {sorted(solucoes_comuns)}")
 
 print("\n--- Top 5 AHP (menor score = melhor) ---")
-print(df_analise.nsmallest(5, 'Score_AHP')[['id', 'tempo', 'distancia', 'alta_velocidade', 'balanceamento', 'Score_AHP', 'Rank_AHP']])
+print(df_analise.nsmallest(5, 'Score_AHP')[['id', 'tempo', 'distancia', 'velocidade', 'balanceamento', 'Score_AHP', 'Rank_AHP']])
 
 print("\n--- Top 5 TOPSIS (maior score = melhor) ---")
-print(df_analise.nlargest(5, 'Score_TOPSIS')[['id', 'tempo', 'distancia', 'alta_velocidade', 'balanceamento', 'Score_TOPSIS', 'Rank_TOPSIS']])
+print(df_analise.nlargest(5, 'Score_TOPSIS')[['id', 'tempo', 'distancia', 'velocidade', 'balanceamento', 'Score_TOPSIS', 'Rank_TOPSIS']])
 
 # %%
 # =============================================================================
@@ -405,7 +405,7 @@ print(f"Método de origem: {solucao_final['metodo']}")
 print(f"\nAtributos:")
 print(f"  Tempo Total: {solucao_final['tempo']:.2f} horas")
 print(f"  Distância Total: {solucao_final['distancia']:.2f} km")
-print(f"  Trechos Alta Velocidade (>80 km/h): {solucao_final['alta_velocidade']:.0f}")
+print(f"  Trechos abaixo vel. crítica: {solucao_final['velocidade']:.0f}")
 print(f"  Balanceamento (desvio padrão): {solucao_final['balanceamento']:.2f}")
 print(f"\nScores:")
 print(f"  Score AHP: {solucao_final['Score_AHP']:.4f} (Rank: {solucao_final['Rank_AHP']:.0f})")
@@ -541,10 +541,10 @@ ax1.set_title('Fronteira de Pareto - Distância vs Tempo', fontsize=14, fontweig
 ax1.legend(fontsize=10)
 ax1.grid(True, alpha=0.3)
 
-# Gráfico 2: Alta Velocidade vs Balanceamento
+# Gráfico 2: Velocidade vs Balanceamento
 ax2 = axes[1]
 ax2.scatter(
-    df_analise['alta_velocidade'],
+    df_analise['velocidade'],
     df_analise['balanceamento'],
     alpha=0.6,
     s=80,
@@ -554,7 +554,7 @@ ax2.scatter(
     label='Soluções da Fronteira',
 )
 ax2.scatter(
-    solucao_final['alta_velocidade'],
+    solucao_final['velocidade'],
     solucao_final['balanceamento'],
     color='red',
     s=300,
@@ -564,9 +564,9 @@ ax2.scatter(
     label='Solução Escolhida',
     zorder=5,
 )
-ax2.set_xlabel('Trechos com Alta Velocidade (>80 km/h)', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Trechos abaixo vel. crítica', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Balanceamento (Desvio Padrão)', fontsize=12, fontweight='bold')
-ax2.set_title('Fronteira de Pareto - Alta Velocidade vs Balanceamento', fontsize=14, fontweight='bold')
+ax2.set_title('Fronteira de Pareto - Velocidade vs Balanceamento', fontsize=14, fontweight='bold')
 ax2.legend(fontsize=10)
 ax2.grid(True, alpha=0.3)
 
@@ -581,7 +581,7 @@ ax = fig.add_subplot(111, projection='3d')
 scatter = ax.scatter(
     df_analise['distancia'],
     df_analise['tempo'],
-    df_analise['alta_velocidade'],
+    df_analise['velocidade'],
     alpha=0.6,
     s=60,
     c=df_analise['balanceamento'],
@@ -593,7 +593,7 @@ scatter = ax.scatter(
 ax.scatter(
     solucao_final['distancia'],
     solucao_final['tempo'],
-    solucao_final['alta_velocidade'],
+    solucao_final['velocidade'],
     color='red',
     s=400,
     marker='*',
@@ -604,7 +604,7 @@ ax.scatter(
 
 ax.set_xlabel('Distância (km)', fontsize=11, fontweight='bold')
 ax.set_ylabel('Tempo (horas)', fontsize=11, fontweight='bold')
-ax.set_zlabel('Alta Velocidade', fontsize=11, fontweight='bold')
+ax.set_zlabel('Velocidade', fontsize=11, fontweight='bold')
 ax.set_title('Fronteira de Pareto - Visualização 3D\n(Cor = Balanceamento)', fontsize=13, fontweight='bold')
 ax.legend(fontsize=10)
 
@@ -617,11 +617,11 @@ fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
 # Gráfico 1: Valores dos atributos
 ax1 = axes[0, 0]
-atributos_nomes = ['Tempo\n(horas)', 'Distância\n(km)', 'Alta Veloc.\n(trechos)', 'Balanc.\n(desv. pad.)']
+atributos_nomes = ['Tempo\n(horas)', 'Distância\n(km)', 'Velocidade\n(trechos)', 'Balanc.\n(desv. pad.)']
 valores = [
     solucao_final['tempo'],
     solucao_final['distancia'],
-    solucao_final['alta_velocidade'],
+    solucao_final['velocidade'],
     solucao_final['balanceamento'],
 ]
 
@@ -674,7 +674,7 @@ ax3 = axes[1, 0]
 valores_media = [
     df_analise['tempo'].mean(),
     df_analise['distancia'].mean(),
-    df_analise['alta_velocidade'].mean(),
+    df_analise['velocidade'].mean(),
     df_analise['balanceamento'].mean(),
 ]
 
@@ -736,7 +736,7 @@ print("=" * 80)
 print(f"\n{'Atributo':<30} {'Solução':<15} {'Média':<15} {'Comparação':<20}")
 print("-" * 80)
 
-atributos_print = ['Tempo (horas)', 'Distância (km)', 'Alta Velocidade', 'Balanceamento']
+atributos_print = ['Tempo (horas)', 'Distância (km)', 'Velocidade', 'Balanceamento']
 for attr, valor, media in zip(atributos_print, valores, valores_media):
     diff = valor - media
     diff_pct = (diff / media * 100) if media > 0 else 0

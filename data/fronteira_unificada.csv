@@ -1,4 +1,4 @@
-id,metodo,repeticao,tempo,distancia,alta_velocidade,balanceamento,parametro
+id,metodo,repeticao,tempo,distancia,velocidade,balanceamento,parametro
 pe_1927554880,epsilon-restrito,1,27.5,1725.6,89,12.32,1726.309365850005
 pe_4016814355,epsilon-restrito,1,28.6,1448.2,33,20.44,496.55355694794105
 pe_3998479150,epsilon-restrito,1,30.5,1437.5,26,22.36,244.60728980971172
